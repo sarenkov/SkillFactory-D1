@@ -3,16 +3,6 @@ import sys
 from datetime import datetime
 import json
 
-# auth_params = {
-#     'key': '8754bae918572b62e9828b8e563c5b2c',
-#     'token': '4ab78cd3eec4cd35c744f533c4818f761f8d095655702f2064b1efdb9dbd21fb'
-# }
-
-# base_url = "https://api.trello.com/1/{}"
-# desc_id = 'b05ht2zO'
-
-
-# Приветствие и запрос данных для работы(ключ и токен)
 class TrelloUtils:
     def __init__(self, key: str, token: str, desc: str):
         self.key = key
@@ -25,7 +15,7 @@ class TrelloUtils:
             'token': self.token
             }
 
-
+    #Приветствие и меню
     def greeting(self):
         print('A utility for working with trello has been launched. Welcome!')
         print(
@@ -222,8 +212,8 @@ class TrelloUtils:
 
 
 if __name__ == "__main__":
-    key = input('Enter your trello key:\n') or '8754bae918572b62e9828b8e563c5b2c'
-    token = input('Enter your trello token:\n') or '4ab78cd3eec4cd35c744f533c4818f761f8d095655702f2064b1efdb9dbd21fb'
-    desc = input('Enter your trello desc id:\n') or 'b05ht2zO'
+    key = input('Enter your trello key:\n') 
+    token = input('Enter your trello token:\n') 
+    desc = input('Enter your trello desc id:\n') 
     client = TrelloUtils(key, token, desc)
     client.greeting()
