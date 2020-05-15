@@ -137,32 +137,22 @@ class TrelloUtils:
                 if task['name'] == name:
                     task_id = task['id']
                     task_ids[task['id']] = task['name'] + '\t column: ' + column['name']
-                    break
-            if task_id:
-                break
+                    # break
+            # if task_id:
+            #     break
         if len(task_ids) == 1:
             for column in column_data:
                 if column['name'] == column_name:
-                    response = requests.put(self.base_url.format('cards') + '/' + task_id +
-                                            '/idList', data={'value': column['id'], **self.auth_params})
-                    if response.status_code == 200:
-                        print('Task rescheduled')
-                    else:
-                        print(
-                            f'task not rescheduled. Errors:\n{response.status_code}\n{response.text}')
-                    break
+                    self.__move_task(task_id, column)
         else:
             print(f'More tasks named "{name}" were found:\n')
             for pair in task_ids.items():
                 print(f'\t{pair[0]}\t id: {pair[1]}')
             choice = input('Specify task id for transfer:\n')
-            response = requests.put(self.base_url.format(
-                'cards') + '/' + choice + '/idList', data={'value': column['id'], **self.auth_params})
-            if response.status_code == 200:
-                print('Task rescheduled')
-            else:
-                print(
-                    f'task not rescheduled. Errors:\n{response.status_code}\n{response.text}')
+            for column in column_data:
+                if column['name'] == column_name:   
+                    self.__move_task(choice, column)
+            
 
     # Поиск задач по имени
 
@@ -226,6 +216,16 @@ class TrelloUtils:
         else:
             print(
                 f'Failed to create task. Reasons: \ n {response.text}')
+
+    def __move_task(self, task_id, column):
+        response = requests.put(self.base_url.format('cards') + '/' + task_id +
+                                            '/idList', data={'value': column['id'], **self.auth_params})
+        if response.status_code == 200:
+            print('Task rescheduled')
+        else:
+            print(
+                f'task not rescheduled. Errors:\n{response.status_code}\n{response.text}')     
+     
 
 
 if __name__ == "__main__":
