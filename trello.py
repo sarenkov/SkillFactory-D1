@@ -90,7 +90,7 @@ class TrelloUtils:
                 print('\tНет задач')
                 continue
             for task in task_data:
-                print('\t' + task['name'])
+                print('\t' + task['name'] + f"\t id: {task['id']}")
 
     # Создание новой задачи
 
