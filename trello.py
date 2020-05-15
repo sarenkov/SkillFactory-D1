@@ -3,6 +3,7 @@ import sys
 from datetime import datetime
 import json
 
+
 class TrelloUtils:
     def __init__(self, key: str, token: str, desc: str):
         self.key = key
@@ -13,9 +14,9 @@ class TrelloUtils:
         self.auth_params = {
             'key': self.key,
             'token': self.token
-            }
+        }
 
-    #Приветствие и меню
+    # Приветствие и меню
     def greeting(self):
         print('A utility for working with trello has been launched. Welcome!')
         print(
@@ -58,7 +59,7 @@ class TrelloUtils:
             column_name = input('Enter name of column:\n')
             self.add_column(column_name)
 
-        elif user_choice =='task':
+        elif user_choice == 'task':
             id = input('Enter your task id:\n')
             self.task(id)
 
@@ -114,7 +115,8 @@ class TrelloUtils:
                     self.__create_task(name, column)
                 else:
                     self.search(name)
-                    select = input('To continue to create a task anyway? y/n\n')
+                    select = input(
+                        'To continue to create a task anyway? y/n\n')
                     if select == 'y':
                         self.__create_task(name, column)
                     else:
@@ -126,6 +128,7 @@ class TrelloUtils:
         column_data = self.get_column_data()
 
         task_id = None
+        task_ids = {}
 
         for column in column_data:
             column_tasks = requests.get(self.base_url.format(
@@ -133,20 +136,33 @@ class TrelloUtils:
             for task in column_tasks:
                 if task['name'] == name:
                     task_id = task['id']
+                    task_ids[task['id']] = task['name'] + '\t column: ' + column['name']
                     break
             if task_id:
                 break
-
-        for column in column_data:
-            if column['name'] == column_name:
-                response = requests.put(self.base_url.format('cards') + '/' + task_id +
-                            '/idList', data={'value': column['id'], **self.auth_params})
-                if response.status_code == 200:
-                    print('Task rescheduled')
-                else:
-                    print(
-                        f'task not rescheduled. Errors:\n{response.status_code}\n{response.text}')
-                break
+        if len(task_ids) == 1:
+            for column in column_data:
+                if column['name'] == column_name:
+                    response = requests.put(self.base_url.format('cards') + '/' + task_id +
+                                            '/idList', data={'value': column['id'], **self.auth_params})
+                    if response.status_code == 200:
+                        print('Task rescheduled')
+                    else:
+                        print(
+                            f'task not rescheduled. Errors:\n{response.status_code}\n{response.text}')
+                    break
+        else:
+            print(f'More tasks named "{name}" were found:\n')
+            for pair in task_ids.items():
+                print(f'\t{pair[0]}\t id: {pair[1]}')
+            choice = input('Specify task id for transfer:\n')
+            response = requests.put(self.base_url.format(
+                'cards') + '/' + choice + '/idList', data={'value': column['id'], **self.auth_params})
+            if response.status_code == 200:
+                print('Task rescheduled')
+            else:
+                print(
+                    f'task not rescheduled. Errors:\n{response.status_code}\n{response.text}')
 
     # Поиск задач по имени
 
@@ -167,15 +183,17 @@ class TrelloUtils:
             print(f"Tasks with name '{name}' not found")
 
     def task(self, id):
-        response = requests.get(self.base_url.format('cards') + '/' + id, params=self.auth_params)
-        print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
+        response = requests.get(self.base_url.format(
+            'cards') + '/' + id, params=self.auth_params)
+        print(json.dumps(json.loads(response.text),
+                         sort_keys=True, indent=4, separators=(",", ": ")))
 
     # Добавление колонки
 
     def add_column(self, name):
         board = self.get_board()
         response = requests.post(self.base_url.format('lists'), data={
-                                'name': name, 'idBoard': board, **self.auth_params})
+            'name': name, 'idBoard': board, **self.auth_params})
         if response.status_code == 200:
             print(f'Column {name} was added')
         else:
@@ -201,19 +219,18 @@ class TrelloUtils:
 
     def __create_task(self, name, column):
         response = requests.post(self.base_url.format('cards'), data={
-                        'name': name, 'idList': column['id'], **self.auth_params})
+            'name': name, 'idList': column['id'], **self.auth_params})
         if response.status_code == 200:
             print(
-                f"Task '{name}' successfully created in column '{column ['name']}'")            
+                f"Task '{name}' successfully created in column '{column ['name']}'")
         else:
             print(
                 f'Failed to create task. Reasons: \ n {response.text}')
 
 
-
 if __name__ == "__main__":
-    key = input('Enter your trello key:\n') 
-    token = input('Enter your trello token:\n') 
-    desc = input('Enter your trello desc id:\n') 
+    key = input('Enter your trello key:\n')
+    token = input('Enter your trello token:\n')
+    desc = input('Enter your trello desc id:\n')
     client = TrelloUtils(key, token, desc)
     client.greeting()
